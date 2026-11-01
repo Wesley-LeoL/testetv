@@ -12,7 +12,7 @@
   var KEY = {
     LEFT: [37], UP: [38], RIGHT: [39], DOWN: [40],
     OK: [13],
-    BACK: [8, 461, 10009, 27],
+    BACK: [8, 27, 166, 461, 10009],
     RED: [403, 82], GREEN: [404, 71], YELLOW: [405, 89], BLUE: [406, 66]
   };
   function is(code, name) { return KEY[name].indexOf(code) !== -1; }
@@ -35,17 +35,48 @@
   var MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
                 "agosto", "setembro", "outubro", "novembro", "dezembro"];
   function pad(n) { return n < 10 ? "0" + n : "" + n; }
+  // Hora "local" calculada a partir do UTC + fuso configurado, para não depender
+  // do fuso/relógio da TV. clockSkew é corrigido pela hora do servidor.
+  var clockSkew = 0;
+  var offsetH = typeof cfg.utcOffsetHours === "number" ? cfg.utcOffsetHours : -3;
+  function now() {
+    // Date com os campos getUTC* representando a hora local desejada
+    return new Date(Date.now() + clockSkew + offsetH * 3600000);
+  }
+  function syncClock() {
+    if (!cfg.syncClockWithServer || location.protocol.indexOf("http") !== 0) return;
+    var xhr = new XMLHttpRequest();
+    var t0 = Date.now();
+    xhr.open("HEAD", location.href.split("#")[0].split("?")[0] + "?t=" + t0, true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      var h = xhr.getResponseHeader("Date");
+      var server = h ? Date.parse(h) : NaN;
+      if (!isNaN(server)) {
+        var skew = server - (t0 + Date.now()) / 2;
+        // Header Date tem resolução de 1s: só corrige se a diferença for relevante
+        clockSkew = Math.abs(skew) > 30000 ? skew : 0;
+        tick();
+      }
+    };
+    xhr.send();
+  }
+
   function tick() {
-    var d = new Date();
-    document.getElementById("clock").textContent = pad(d.getHours()) + ":" + pad(d.getMinutes());
+    var d = now();
+    var day = DAYS[d.getUTCDay()];
+    document.getElementById("clock").textContent = pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes());
     document.getElementById("date").textContent =
-      DAYS[d.getDay()].charAt(0).toUpperCase() + DAYS[d.getDay()].slice(1) + ", " + d.getDate() + " de " + MONTHS[d.getMonth()];
-    var h = d.getHours();
-    var g = h < 12 ? "Bom dia" : (h < 18 ? "Boa tarde" : "Boa noite");
+      day.charAt(0).toUpperCase() + day.slice(1) + ", " + d.getUTCDate() + " de " +
+      MONTHS[d.getUTCMonth()] + " de " + d.getUTCFullYear();
+    var h = d.getUTCHours();
+    var g = h < 5 ? "Boa noite" : (h < 12 ? "Bom dia" : (h < 18 ? "Boa tarde" : "Boa noite"));
     document.getElementById("greeting").textContent = g + (cfg.userName ? ", " + cfg.userName : "");
   }
   tick();
   setInterval(tick, 10000);
+  syncClock();
+  setInterval(syncClock, 6 * 3600000);
 
   // ---------- Clima (Open-Meteo, sem chave de API) ----------
   var WMO = {
@@ -59,7 +90,7 @@
     var el = document.getElementById("weather");
     if (!w || !w.enabled) { el.style.display = "none"; return; }
     var url = "https://api.open-meteo.com/v1/forecast?latitude=" + w.latitude +
-              "&longitude=" + w.longitude + "&current_weather=true&timezone=auto";
+              "&longitude=" + w.longitude + "&current_weather=true&timezone=" + encodeURIComponent(w.timezone || "auto");
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
     xhr.onreadystatechange = function () {

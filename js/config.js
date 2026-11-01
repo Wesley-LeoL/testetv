@@ -4,11 +4,17 @@
  */
 var HUD_CONFIG = {
   userName: "",               // ex.: "Wesley" -> "Boa noite, Wesley"
+  // Horário de Brasília (UTC-3, sem horário de verão desde 2019).
+  // O relógio usa este fuso mesmo que a TV esteja com fuso errado.
+  utcOffsetHours: -3,
+  // Sincroniza a hora com o servidor (GitHub Pages) caso o relógio da TV esteja errado.
+  syncClockWithServer: true,
   weather: {
     enabled: true,
-    city: "São Paulo",
-    latitude: -23.55,
-    longitude: -46.63
+    city: "Maringá - PR",
+    latitude: -23.4205,
+    longitude: -51.9333,
+    timezone: "America/Sao_Paulo"
   },
   apps: [
     { title: "YouTube",    url: "https://www.youtube.com/tv",     color: "#e62117", icon: "▶" },
@@ -21,6 +27,6 @@ var HUD_CONFIG = {
   favorites: [
     { title: "Notícias",   url: "https://g1.globo.com",           color: "#c4170c", icon: "N" },
     { title: "Futebol",    url: "https://ge.globo.com",           color: "#06aa48", icon: "⚽" },
-    { title: "Previsão",   url: "https://www.climatempo.com.br",  color: "#0077c8", icon: "☀" }
+    { title: "Previsão",   url: "https://www.climatempo.com.br/previsao-do-tempo/cidade/545/maringa-pr",  color: "#0077c8", icon: "☀" }
   ]
 };
