@@ -89,7 +89,9 @@
     var w = cfg.weather;
     var el = document.getElementById("weather");
     if (!w || !w.enabled) { el.style.display = "none"; return; }
-    var url = "https://api.open-meteo.com/v1/forecast?latitude=" + w.latitude +
+    // Em página HTTP (TV sem suporte aos certificados atuais) usa a API em HTTP também
+    var proto = location.protocol === "http:" ? "http:" : "https:";
+    var url = proto + "//api.open-meteo.com/v1/forecast?latitude=" + w.latitude +
               "&longitude=" + w.longitude + "&current_weather=true&timezone=" + encodeURIComponent(w.timezone || "auto");
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);

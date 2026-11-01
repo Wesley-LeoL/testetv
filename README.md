@@ -35,10 +35,37 @@ de computador ligado.
 Qualquer alteração enviada para a branch é publicada automaticamente; na TV, aperte
 🔴 para recarregar.
 
+## 1b. Endereço sem HTTPS (se a TV disser "conexão não segura")
+
+O navegador da TC-32DS600B (2015) pode não aceitar os certificados HTTPS atuais.
+Endereços `*.github.io` sempre forçam HTTPS, mas com um **domínio próprio** o GitHub
+Pages pode servir em HTTP simples. Dá para fazer tudo pelo celular, de graça:
+
+1. **Teste antes:** no navegador da TV abra `http://neverssl.com`. Se abrir, a TV
+   navega normalmente em HTTP e este caminho vai funcionar.
+2. **Crie um subdomínio grátis** em <https://freedns.afraid.org> (crie a conta →
+   *Subdomains* → *Add*):
+   - **Type:** `CNAME`
+   - **Subdomain:** um nome, ex.: `smarthud-maringa`
+   - **Domain:** escolha um domínio compartilhado da lista (ex.: `mooo.com`)
+   - **Destination:** `wesley-leol.github.io`
+   - Salve. Resultado: `smarthud-maringa.mooo.com`
+3. **No GitHub:** *Settings → Pages → Custom domain* → digite
+   `smarthud-maringa.mooo.com` → **Save**. Aguarde o "DNS check successful".
+4. **Deixe "Enforce HTTPS" DESMARCADO.**
+5. Na TV, abra **`http://smarthud-maringa.mooo.com`** (com `http://`).
+
+O clima passa a ser buscado em HTTP automaticamente quando a página está em HTTP.
+Se preferir um domínio `.com.br` próprio (≈ R$ 40/ano no registro.br), o processo
+é o mesmo: crie um registro CNAME apontando para `wesley-leol.github.io`.
+
+> Os atalhos (YouTube, Globoplay…) são sites HTTPS. Se o problema for o navegador
+> antigo da TV, eles podem mostrar o mesmo aviso — o HUD em si funciona.
+
 ## 2. Colocar na TV (TC-32DS600B)
 
 1. Aperte **HOME** no controle e abra o **Navegador da Web** (Web Browser).
-2. Digite `wesley-leol.github.io/testetv` e confirme.
+2. Digite `wesley-leol.github.io/testetv` (ou o seu endereço `http://` do passo 1b) e confirme.
 3. Com a página aberta, aperte **OPTION** no controle e escolha
    **Fixar na Página Inicial** (*Pin to Home*). O HUD vira um ícone na tela Smart
    (o nome exato da opção pode variar com a versão do firmware).
