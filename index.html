@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920, initial-scale=1">
+  <title>Smart HUD</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="stage">
+    <header class="hud-top">
+      <div class="clock-block">
+        <div id="clock" class="clock">--:--</div>
+        <div id="date" class="date"></div>
+      </div>
+      <div id="greeting" class="greeting"></div>
+      <div id="weather" class="weather">
+        <div class="weather-temp" id="weather-temp">--°</div>
+        <div class="weather-desc" id="weather-desc">Carregando clima…</div>
+      </div>
+    </header>
+
+    <main>
+      <section class="row" data-row="apps">
+        <h2 class="row-title">Apps</h2>
+        <div class="tiles" id="tiles-apps"></div>
+      </section>
+      <section class="row" data-row="favorites">
+        <h2 class="row-title">Favoritos</h2>
+        <div class="tiles" id="tiles-favorites"></div>
+      </section>
+    </main>
+
+    <footer class="hud-bottom">
+      <span class="hint"><i class="key red"></i>Recarregar</span>
+      <span class="hint"><i class="key green"></i>Tela cheia</span>
+      <span class="hint"><i class="key yellow"></i>Tema</span>
+      <span class="hint"><i class="key blue"></i>Sobre</span>
+      <span class="hint">OK Abrir · ◀ ▶ ▲ ▼ Navegar</span>
+    </footer>
+
+    <div id="toast" class="toast"></div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
