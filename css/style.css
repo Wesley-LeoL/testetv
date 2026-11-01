@@ -46,7 +46,7 @@ main { margin-top: 40px; }
   border-radius: 20px; box-sizing: border-box; padding: 22px;
   color: #fff; overflow: hidden;
   box-shadow: 0 10px 30px rgba(0,0,0,.35);
-  -webkit-transform: scale(1); transform: scale(1);
+  -webkit-transform: scale(1); -moz-transform: scale(1); transform: scale(1);
   -webkit-transition: -webkit-transform .15s ease-out, box-shadow .15s ease-out;
   transition: transform .15s ease-out, box-shadow .15s ease-out;
   outline: none;
@@ -77,3 +77,16 @@ main { margin-top: 40px; }
   -webkit-transition: opacity .25s; transition: opacity .25s;
 }
 .toast.show { opacity: 1; }
+
+/* Painel de ajuste de tela (fora do palco, para não ser escalado) */
+.adjust {
+  display: none; position: fixed; left: 5%; right: 5%; bottom: 14%;
+  padding: 20px 28px; border-radius: 14px; background: rgba(0,0,0,.88); color: #fff;
+  font-size: 22px; line-height: 1.5; text-align: center; z-index: 10;
+  border: 3px solid #1e88e5;
+}
+.adjust b { font-size: 28px; }
+.adjust .adj-info { opacity: .7; font-size: 18px; margin-top: 6px; }
+body.adjusting .adjust { display: block; }
+/* Moldura para ver as bordas reais do palco durante o ajuste */
+body.adjusting #stage { outline: 6px dashed #1e88e5; outline-offset: -6px; }

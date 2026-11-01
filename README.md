@@ -75,6 +75,14 @@ Se preferir um domínio `.com.br` próprio (≈ R$ 40/ano no registro.br), o pro
 Dica: se a data/hora da TV estiver errada, ajuste também em **Menu → Temporizador →
 Ajuste do relógio** (ou deixe em automático); o HUD já se corrige sozinho.
 
+## Ajustar a tela (resolução/bordas cortadas)
+Se o HUD aparecer pequeno, grande, cortado ou fora do lugar:
+1. Selecione o bloco **⚙ Ajustar tela** (último em Favoritos) e aperte **OK** —
+   ou aperte o botão **azul** ou a tecla **0** do controle.
+2. **▲ / ▼** aumenta/diminui o tamanho. **OK** muda para o modo posição (setas movem).
+3. **Amarelo** ou **5** volta ao padrão. **Azul**, **0** ou **Voltar** salva.
+O ajuste fica gravado na TV. O painel mostra também a resolução que o navegador informa.
+
 ## Personalizar
 Edite `js/config.js`:
 - `userName` — seu nome na saudação

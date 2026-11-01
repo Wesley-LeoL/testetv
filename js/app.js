@@ -13,22 +13,43 @@
     LEFT: [37], UP: [38], RIGHT: [39], DOWN: [40],
     OK: [13],
     BACK: [8, 27, 166, 461, 10009],
-    RED: [403, 82], GREEN: [404, 71], YELLOW: [405, 89], BLUE: [406, 66]
+    RED: [403, 82], GREEN: [404, 71], YELLOW: [405, 89], BLUE: [406, 66],
+    ZERO: [48, 96]
   };
   function is(code, name) { return KEY[name].indexOf(code) !== -1; }
 
   // ---------- Escala do palco 1920x1080 ----------
+  // A escala automática usa o tamanho da janela; o ajuste manual (tamanho e
+  // posição, salvo na TV) corrige navegadores que informam a resolução errada
+  // ou cortam as bordas (overscan).
   var stage = document.getElementById("stage");
+  var adj = { scale: 1, x: 0, y: 0 };
+  try {
+    var savedAdj = JSON.parse(localStorage.getItem("hud.adjust") || "null");
+    if (savedAdj && typeof savedAdj.scale === "number") adj = savedAdj;
+  } catch (e) {}
+
+  function viewport() {
+    var de = document.documentElement;
+    var w = window.innerWidth || de.clientWidth || screen.width || 1280;
+    var h = window.innerHeight || de.clientHeight || screen.height || 720;
+    return { w: w, h: h };
+  }
   function fit() {
-    var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-    var ox = (window.innerWidth - 1920 * s) / 2;
-    var oy = (window.innerHeight - 1080 * s) / 2;
+    var v = viewport();
+    var s = Math.min(v.w / 1920, v.h / 1080) * adj.scale;
+    var ox = (v.w - 1920 * s) / 2 + adj.x;
+    var oy = (v.h - 1080 * s) / 2 + adj.y;
     var t = "translate(" + ox + "px," + oy + "px) scale(" + s + ")";
     stage.style.webkitTransform = t;
+    stage.style.MozTransform = t;
     stage.style.transform = t;
   }
   window.addEventListener("resize", fit);
   fit();
+  // Alguns navegadores de TV só informam o tamanho real depois de carregar
+  window.addEventListener("load", fit);
+  setTimeout(fit, 1000);
 
   // ---------- Relógio e saudação ----------
   var DAYS = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
@@ -121,7 +142,8 @@
       var t = document.createElement("div");
       t.className = "tile";
       t.style.background = it.color || "#333";
-      t.setAttribute("data-url", it.url);
+      if (it.url) t.setAttribute("data-url", it.url);
+      if (it.action) t.setAttribute("data-action", it.action);
       t.innerHTML = '<div class="icon"></div><div class="label"></div>';
       t.firstChild.textContent = it.icon || it.title.charAt(0);
       t.lastChild.textContent = it.title;
@@ -129,7 +151,9 @@
     }
   }
   buildRow("tiles-apps", cfg.apps);
-  buildRow("tiles-favorites", cfg.favorites);
+  buildRow("tiles-favorites", (cfg.favorites || []).concat([
+    { title: "Ajustar tela", action: "adjust", color: "#3a4256", icon: "⚙" }
+  ]));
 
   // ---------- Navegação espacial pelo controle ----------
   var tiles = Array.prototype.slice.call(document.querySelectorAll(".tile"));
@@ -166,6 +190,7 @@
   }
 
   function open(el) {
+    if (el && el.getAttribute("data-action") === "adjust") { startAdjust(); return; }
     var url = el && el.getAttribute("data-url");
     if (!url) return;
     toast("Abrindo " + el.lastChild.textContent + "…");
@@ -201,9 +226,57 @@
 
   try { if (localStorage.getItem("hud.theme") === "light") document.body.className = "light"; } catch (e) {}
 
+  // ---------- Modo "Ajustar tela" ----------
+  // ▲▼ tamanho · OK alterna para posição (setas movem) · Amarelo restaura · Azul/Voltar salva
+  var adjusting = false, adjustMode = "size";
+  var panel = document.getElementById("adjust");
+  function renderAdjust() {
+    var v = viewport();
+    panel.innerHTML =
+      "<b>Ajustar tela</b>" +
+      "<div class='adj-mode'>" + (adjustMode === "size"
+        ? "Modo: <u>TAMANHO</u> · ▲ aumentar · ▼ diminuir"
+        : "Modo: <u>POSIÇÃO</u> · ◀ ▶ ▲ ▼ mover") + "</div>" +
+      "<div>OK alterna tamanho/posição · Amarelo ou 5 restaura · Azul, 0 ou Voltar salva</div>" +
+      "<div class='adj-info'>Tamanho " + Math.round(adj.scale * 100) + "% · deslocamento " +
+      adj.x + "," + adj.y + " · janela " + v.w + "×" + v.h +
+      " · tela " + screen.width + "×" + screen.height +
+      " · dpr " + (window.devicePixelRatio || 1) + "</div>";
+  }
+  function startAdjust() {
+    adjusting = true; adjustMode = "size";
+    document.body.className += " adjusting";
+    renderAdjust();
+  }
+  function endAdjust() {
+    adjusting = false;
+    document.body.className = document.body.className.replace(/ ?adjusting/g, "");
+    try { localStorage.setItem("hud.adjust", JSON.stringify(adj)); } catch (e) {}
+    toast("Ajuste salvo nesta TV");
+  }
+  function adjustKey(k) {
+    var step = 10;
+    if (is(k, "OK")) adjustMode = adjustMode === "size" ? "pos" : "size";
+    else if (is(k, "BLUE") || is(k, "ZERO") || is(k, "BACK")) { endAdjust(); return; }
+    else if (is(k, "YELLOW") || k === 53 || k === 101) adj = { scale: 1, x: 0, y: 0 };
+    else if (adjustMode === "size") {
+      if (is(k, "UP") || is(k, "RIGHT")) adj.scale = Math.min(3, Math.round((adj.scale + 0.02) * 100) / 100);
+      else if (is(k, "DOWN") || is(k, "LEFT")) adj.scale = Math.max(0.3, Math.round((adj.scale - 0.02) * 100) / 100);
+      else return;
+    } else {
+      if (is(k, "LEFT")) adj.x -= step;
+      else if (is(k, "RIGHT")) adj.x += step;
+      else if (is(k, "UP")) adj.y -= step;
+      else if (is(k, "DOWN")) adj.y += step;
+      else return;
+    }
+    fit(); renderAdjust();
+  }
+
   document.addEventListener("keydown", function (ev) {
     var k = ev.keyCode;
     var handled = true;
+    if (adjusting) { adjustKey(k); if (ev.preventDefault) ev.preventDefault(); return; }
     if (is(k, "LEFT")) move(-1, 0);
     else if (is(k, "RIGHT")) move(1, 0);
     else if (is(k, "UP")) move(0, -1);
@@ -212,7 +285,7 @@
     else if (is(k, "RED")) window.location.reload();
     else if (is(k, "GREEN")) toggleFullscreen();
     else if (is(k, "YELLOW")) toggleTheme();
-    else if (is(k, "BLUE")) toast("Smart HUD · " + window.innerWidth + "×" + window.innerHeight);
+    else if (is(k, "BLUE") || is(k, "ZERO")) startAdjust();
     else handled = false;
     if (handled && ev.preventDefault) ev.preventDefault();
   }, false);
